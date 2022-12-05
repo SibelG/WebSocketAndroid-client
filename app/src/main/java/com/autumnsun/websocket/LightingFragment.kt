@@ -6,9 +6,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import com.autumnsun.websocket.databinding.FragmentLightingBinding
 import com.autumnsun.websocket.utils.Constants
 import okhttp3.OkHttpClient
+import okhttp3.WebSocket
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
@@ -19,6 +22,7 @@ class LightingFragment : Fragment() {
     private lateinit var webSocketClient: WebSocketClient
     private var mClient: OkHttpClient? = null
     lateinit var binding: FragmentLightingBinding
+    lateinit var navController: NavController
 
 
 
@@ -38,41 +42,18 @@ class LightingFragment : Fragment() {
     }
 
 
-    private fun initWebSocket() {
-        val webSocketUrl: URI? = URI(WEB_SOCKET_URL)
-        createWebSocketClient(webSocketUrl)
-        //Eğer SSL sertifikalı bir websocket dinliyorsak
-        //SSl ayarlamasını yapıyoruz.
-        //val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
-        //webSocketClient.setSocketFactory(socketFactory)
-        webSocketClient.connect()
-    }
-
-    private fun createWebSocketClient(webSocketUrl: URI?) {
-        webSocketClient = object : WebSocketClient(webSocketUrl) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                Log.d(TAG, "onOpen")
-                subscribe()
-            }
-
-            override fun onMessage(message: String?) {
-                Log.d(TAG, "onMessage: $message")
-                //setUpMessage(message)
-            }
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                Log.d(TAG, "onClose")
-                //unsubscribe()
-            }
-
-            override fun onError(ex: Exception?) {
-                Log.e(TAG, "onError: ${ex?.message}")
-            }
-
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        navController = Navigation.findNavController(view)
+        binding.blank.setOnClickListener{
+            //Toast.makeText(requireContext(),"tıkla",Toast.LENGTH_LONG).show()
+            SocketManager.sendMessage(subscribe())
         }
     }
 
-    private fun subscribe() {
-        webSocketClient.send(
+
+    private fun subscribe() :String{
+        return (
             "{\"is_request\":true,\"id\":84,\"params\":[{\"id\":\"a2830d60-ddff-4dad-8f3d-dfca0ded2462\",\"value\":1}\r\n]," +
                     "\"method\":\"UpdateControlValue\"}")
 
@@ -81,12 +62,12 @@ class LightingFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        initWebSocket()
+        SocketManager.initWebSocket(WEB_SOCKET_URL)
     }
 
     override fun onPause() {
         super.onPause()
-        webSocketClient.close()
+        SocketManager.close()
     }
 
     override fun onDestroy() {

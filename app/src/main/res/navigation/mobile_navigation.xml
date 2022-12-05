@@ -18,7 +18,11 @@
     <fragment android:id="@+id/lightingFragment"
               android:name="com.autumnsun.websocket.LightingFragment"
               android:label="fragment_lighting"
-              tools:layout="@layout/fragment_lighting"/>
+              tools:layout="@layout/fragment_lighting">
+        <action
+            android:id="@+id/action_lightingFragment_to_blankFragment"
+            app:destination="@id/blankFragment" />
+    </fragment>
     <fragment android:id="@+id/loginFragment"
               android:name="com.autumnsun.websocket.LoginFragment"
               android:label="fragment_login"
@@ -27,4 +31,9 @@
                 android:id="@+id/action_loginFragment_to_homeFragment"
                 app:destination="@id/homeFragment"/>
     </fragment>
+    <fragment
+        android:id="@+id/blankFragment"
+        android:name="com.autumnsun.websocket.BlankFragment"
+        android:label="fragment_blank"
+        tools:layout="@layout/fragment_blank" />
 </navigation>

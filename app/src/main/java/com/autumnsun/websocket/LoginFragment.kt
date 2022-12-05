@@ -1,6 +1,7 @@
 package com.autumnsun.websocket
 
 import android.os.Bundle
+import android.system.Os.close
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -40,71 +41,35 @@ class LoginFragment : Fragment(){
         binding.loginButton.setOnClickListener{
             val action = LoginFragmentDirections.actionLoginFragmentToHomeFragment()
             navController.navigate(action)
+            SocketManager.sendMessage(subscribe())
             //Toast.makeText(requireContext(),"tıkla",Toast.LENGTH_LONG).show()
-            subscribe()
-        }
-    }
-
-
-
-
-    private fun initWebSocket() {
-        val webSocketUrl: URI? = URI(WEB_SOCKET_URL)
-        createWebSocketClient(webSocketUrl)
-        //Eğer SSL sertifikalı bir websocket dinliyorsak
-        //SSl ayarlamasını yapıyoruz.
-        //val socketFactory: SSLSocketFactory = SSLSocketFactory.getDefault() as SSLSocketFactory
-        //webSocketClient.setSocketFactory(socketFactory)
-        webSocketClient.connect()
-    }
-
-    private fun createWebSocketClient(webSocketUrl: URI?) {
-        webSocketClient = object : WebSocketClient(webSocketUrl) {
-            override fun onOpen(handshakedata: ServerHandshake?) {
-                Log.d(TAG, "onOpen")
-            }
-
-            override fun onMessage(message: String?) {
-                Log.d(TAG, "onMessage: $message")
-                //setUpMessage(message)
-            }
-            override fun onClose(code: Int, reason: String?, remote: Boolean) {
-                Log.d(TAG, "onClose")
-                //unsubscribe()
-            }
-
-            override fun onError(ex: Exception?) {
-                Log.e(TAG, "onError: ${ex?.message}")
-            }
 
         }
     }
 
-    private fun subscribe() {
-        webSocketClient.send(
+
+    private fun subscribe() : String {
+        return (
             "{\"is_request\":true,\"id\":8,\"params\"" +
                     ":[{\"username\":\"demo\",\"password\":\"123456\"}],\"method\":\"Authenticate\"}")
 
     }
 
-    /*private fun setUpMessage(message: String?) {
-        requireActivity().runOnUiThread {
-            binding.textView5.text = message.toString()
-        }
-    }*/
+
 
     override fun onResume() {
         super.onResume()
-        initWebSocket()
+        SocketManager.initWebSocket(WEB_SOCKET_URL)
     }
 
     override fun onPause() {
         super.onPause()
-        webSocketClient.close()
+        SocketManager.close()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        SocketManager.close()
         //_binding = null
     }
 
